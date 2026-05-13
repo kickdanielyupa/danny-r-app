@@ -195,7 +195,7 @@ tr:hover td { background: var(--bg-card-hover); }
 
 /* Responsive */
 @media (max-width: 768px) {
-  :root { --sidebar-width: 0px; }
+  :root { --sidebar-width: 260px; }
   .grid-cards { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
   .page-actions { width: 100%; justify-content: space-between; }
