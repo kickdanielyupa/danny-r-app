@@ -150,7 +150,7 @@
   }
   .dashboard-main {
     margin-left: 0;
-    padding: 16px;
+    padding: 24px 16px 80px 16px;
   }
   .mobile-toggle {
     display: flex;
