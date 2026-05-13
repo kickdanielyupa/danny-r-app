@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
+import { createBrowserClient } from '@/lib/supabase/client';
 import './dashboard.css';
 
 const NAV_ITEMS = [
@@ -28,9 +29,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const router = useRouter();
+  const supabase = createBrowserClient();
+
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   useEffect(() => { closeSidebar(); }, [pathname, closeSidebar]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
   const operaciones = NAV_ITEMS.filter(i => i.section === 'operaciones');
   const historial = NAV_ITEMS.filter(i => i.section === 'historial');
@@ -38,12 +48,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="dashboard-layout">
       <div className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`} onClick={closeSidebar} />
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{display: 'flex', flexDirection: 'column'}}>
         <div className="sidebar-brand">
           <h1>DannyR</h1>
           <span>Live Selling OS</span>
         </div>
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" style={{flex: 1, display: 'flex', flexDirection: 'column'}}>
           <div className="sidebar-section">Operaciones</div>
           {operaciones.map(item => (
             <Link key={item.href} href={item.href} className={`nav-link ${pathname === item.href ? 'active' : ''}`}>
@@ -58,6 +68,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {item.label}
             </Link>
           ))}
+          
+          <div style={{marginTop: 'auto', paddingTop: 20}}>
+            <button onClick={handleLogout} className="nav-link" style={{width: '100%', textAlign: 'left', background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'inherit', fontSize: 'inherit'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: 18, height: 18}}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Cerrar Sesión
+            </button>
+          </div>
         </nav>
       </aside>
       <main className="dashboard-main">{children}</main>
