@@ -37,7 +37,8 @@ export default function LoginPage() {
       <div className="login-decor login-decor-2"></div>
       <div className="login-card">
         <div className="login-header">
-          <h1>DannyR</h1>
+          <h1>ANDCLAU</h1>
+          <span style={{display: 'block', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12, fontFamily: 'Outfit, sans-serif'}}>By Dannyvision</span>
           <p>✨ Welcome back, hermosa ✨</p>
         </div>
         

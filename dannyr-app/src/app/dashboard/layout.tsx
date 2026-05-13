@@ -50,8 +50,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`} onClick={closeSidebar} />
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{display: 'flex', flexDirection: 'column'}}>
         <div className="sidebar-brand">
-          <h1>DannyR</h1>
-          <span>Live Selling OS</span>
+          <h1>ANDCLAU</h1>
+          <span>By Dannyvision</span>
         </div>
         <nav className="sidebar-nav" style={{flex: 1, display: 'flex', flexDirection: 'column'}}>
           <div className="sidebar-section">Operaciones</div>

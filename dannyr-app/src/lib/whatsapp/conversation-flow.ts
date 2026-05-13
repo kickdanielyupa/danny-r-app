@@ -71,7 +71,7 @@ async function handleWelcome(phone: string, msg: IncomingMessage, convId?: strin
 
   // Default: show menu
   await upsertConversation(supabase, phone, 'WELCOME', {});
-  return sendButtonMessage(phone, '¡Hola, hermosa! 👋 Bienvenida a DannyR Shop. ✨ ¿Cómo puedo ayudarte hoy con tus tesoros? 💖', [
+  return sendButtonMessage(phone, '¡Hola, hermosa! 👋 Bienvenida a ANDCLAU. ✨ ¿Cómo puedo ayudarte hoy con tus tesoros? 💖', [
     { id: 'btn_consulta', title: 'CONSULTA' },
     { id: 'btn_separar', title: 'TENGO SEPARACIÓN' },
   ]);
@@ -182,7 +182,7 @@ async function handleShippingStep(phone: string, msg: IncomingMessage, convId: s
     return sendTextMessage(phone,
       '🎉 *¡Listo, reina!* Tus datos han sido guardados con éxito. 💖\n\n' +
       '📦 Tu paquete está en camino a ser preparado con mucho amor. ✨ Te avisaremos cuando salga a reparto.\n\n' +
-      '¡Muchísimas gracias por confiar en DannyR! 💜🌸'
+      '¡Muchísimas gracias por confiar en ANDCLAU! 💜🌸'
     );
   }
 
