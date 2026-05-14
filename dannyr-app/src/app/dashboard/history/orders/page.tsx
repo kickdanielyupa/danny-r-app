@@ -3,12 +3,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { OrderWithGarment } from '@/lib/types/database';
 import { formatPrice, formatDate, formatPhone, getOrderStatusLabel } from '@/lib/utils/format';
+import ConfirmModal from '@/app/components/ConfirmModal';
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<OrderWithGarment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
   const [search, setSearch] = useState('');
+  
+  // Modal State
+  const [confirmState, setConfirmState] = useState<{ isOpen: boolean; id: string | null; step: 1 | 2 }>({ isOpen: false, id: null, step: 1 });
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -22,6 +26,19 @@ export default function OrderHistoryPage() {
   }, [filter, search]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  const handleDelete = async () => {
+    if (confirmState.step === 1) {
+      setConfirmState(prev => ({ ...prev, step: 2 }));
+      return;
+    }
+
+    const res = await fetch(`/api/orders/${confirmState.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setConfirmState({ isOpen: false, id: null, step: 1 });
+      fetchOrders();
+    }
+  };
 
   return (
     <>
@@ -58,6 +75,7 @@ export default function OrderHistoryPage() {
                 <th>Precio</th>
                 <th>Estado</th>
                 <th>Fecha</th>
+                <th>Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -69,12 +87,33 @@ export default function OrderHistoryPage() {
                   <td>{formatPrice(o.garment?.price || 0)}</td>
                   <td><span className={`badge badge-${o.status.toLowerCase()}`}>{getOrderStatusLabel(o.status)}</span></td>
                   <td>{formatDate(o.created_at)}</td>
+                  <td>
+                    <button className="btn btn-icon btn-ghost" style={{ color: '#ef4444' }} onClick={() => setConfirmState({ isOpen: true, id: o.id, step: 1 })}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={confirmState.isOpen}
+        title="Eliminar Pedido"
+        message={confirmState.step === 1 
+          ? "¿Estás seguro de que deseas eliminar este pedido del historial?" 
+          : "ALERTA: Esta acción es permanente y también eliminará la prenda asociada si es de un fardo. ¿Confirmas la eliminación total?"
+        }
+        isDouble={true}
+        step={confirmState.step}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmState({ isOpen: false, id: null, step: 1 })}
+        confirmText="Sí, eliminar"
+      />
     </>
   );
 }

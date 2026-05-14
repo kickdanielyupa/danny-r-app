@@ -7,6 +7,7 @@ export type GarmentStatus = 'AVAILABLE' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
 export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'EXPIRED';
 export type ShippingStatus = 'PENDING' | 'SHIPPED' | 'DELIVERED';
 export type ShipmentGroupStatus = 'ACTIVE' | 'COMPLETED';
+export type BaleStatus = 'ACTIVE' | 'COMPLETED';
 
 // Conversation steps
 export type ConversationStep =
@@ -27,6 +28,17 @@ export type ConversationStep =
 // Table Types
 // ============================================
 
+export interface Bale {
+  id: string;
+  name: string;
+  total_items: number;
+  remaining_items: number;
+  cost: number;
+  average_cost: number;
+  status: BaleStatus;
+  created_at: string;
+}
+
 export interface Garment {
   id: string;
   code: string;
@@ -35,6 +47,7 @@ export interface Garment {
   price: number;
   status: GarmentStatus;
   is_archived: boolean;
+  bale_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -176,6 +189,13 @@ export interface CreateGarmentRequest {
   name?: string;
   category?: string;
   price: number;
+  bale_id?: string;
+}
+
+export interface CreateBaleRequest {
+  name: string;
+  total_items: number;
+  cost: number;
 }
 
 export interface UpdateGarmentRequest {

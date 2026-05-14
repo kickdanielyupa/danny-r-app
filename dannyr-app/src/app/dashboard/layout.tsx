@@ -7,11 +7,14 @@ import { createBrowserClient } from '@/lib/supabase/client';
 import './dashboard.css';
 
 const NAV_ITEMS = [
+  { href: '/dashboard/finanzas', label: 'Finanzas', icon: 'dollar-sign', section: 'operaciones' },
+  { href: '/dashboard/bales', label: 'Fardos (Live)', icon: 'box', section: 'operaciones' },
   { href: '/dashboard/inventory', label: 'Inventario', icon: 'package', section: 'operaciones' },
   { href: '/dashboard/orders', label: 'Pedidos', icon: 'shopping-bag', section: 'operaciones' },
   { href: '/dashboard/shipments', label: 'Envíos', icon: 'truck', section: 'operaciones' },
   { href: '/dashboard/history/orders', label: 'Historial Pedidos', icon: 'clock', section: 'historial' },
   { href: '/dashboard/history/shipments', label: 'Historial Envíos', icon: 'archive', section: 'historial' },
+  { href: '/dashboard/history/bales', label: 'Historial Fardos', icon: 'box', section: 'historial' },
 ];
 
 function NavIcon({ icon }: { icon: string }) {
@@ -21,6 +24,8 @@ function NavIcon({ icon }: { icon: string }) {
     'truck': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
     'clock': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
     'archive': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>,
+    'box': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
+    'dollar-sign': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
   };
   return <>{icons[icon]}</>;
 }
@@ -49,9 +54,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="dashboard-layout">
       <div className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`} onClick={closeSidebar} />
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{display: 'flex', flexDirection: 'column'}}>
-        <div className="sidebar-brand">
-          <h1>ANDCLAU</h1>
-          <span>By Dannyvision</span>
+        <div className="sidebar-brand" style={{ padding: '32px 24px', borderBottom: '1px solid var(--border)' }}>
+          <h1 style={{ 
+            fontSize: '28px', 
+            fontWeight: '800', 
+            letterSpacing: '-1px',
+            background: 'linear-gradient(135deg, #d4af37 0%, #f2cfd8 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>ANDCLAU</h1>
+          <span style={{ 
+            fontSize: '10px', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.2em', 
+            color: 'var(--text-muted)',
+            fontWeight: '600'
+          }}>Premium System</span>
         </div>
         <nav className="sidebar-nav" style={{flex: 1, display: 'flex', flexDirection: 'column'}}>
           <div className="sidebar-section">Operaciones</div>

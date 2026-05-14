@@ -51,7 +51,14 @@ export default function OrdersPage() {
     else showToast(data.error || 'Error', 'error');
   };
 
-  const handleCreateOrder = async (form: { code: string, customer_name: string, customer_phone: string }) => {
+  const handleCreateOrder = async (form: any) => {
+    if (form.success) {
+      showToast('Pedido creado exitosamente');
+      setShowModal(false);
+      fetchOrders();
+      return;
+    }
+
     const res = await fetch('/api/reserve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -108,17 +115,47 @@ export default function OrdersPage() {
   );
 }
 
-function NewOrderModal({ onSave, onClose }: { onSave: (f: {code: string, customer_name: string, customer_phone: string}) => void; onClose: () => void }) {
-  const [code, setCode] = useState('');
+function NewOrderModal({ onSave, onClose }: { onSave: (f: any) => void; onClose: () => void }) {
+  const [bales, setBales] = useState<any[]>([]);
+  const [selectedBaleId, setSelectedBaleId] = useState('');
+  const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    fetch('/api/bales?status=ACTIVE').then(res => res.json()).then(data => {
+      setBales(data.bales || []);
+      if (data.bales?.length > 0) setSelectedBaleId(data.bales[0].id);
+    });
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code || !name || !phone) return;
+    if (!selectedBaleId || selectedBaleId === 'undefined' || !price || !name || !phone) {
+      alert('Por favor selecciona un fardo válido y completa todos los campos.');
+      return;
+    }
     setSaving(true);
-    await onSave({ code: code.toUpperCase().trim(), customer_name: name, customer_phone: phone.replace(/\D/g, '') });
+    const res = await fetch('/api/sales/generic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bale_id: selectedBaleId,
+        price: parseFloat(price),
+        customer_name: name,
+        customer_phone: phone.replace(/\D/g, ''),
+        status: 'PENDING_PAYMENT',
+        description: description || undefined
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      onSave({ success: true }); // Trigger refresh
+    } else {
+      alert(data.error || 'Error al crear pedido de fardo');
+    }
     setSaving(false);
   };
 
@@ -126,11 +163,33 @@ function NewOrderModal({ onSave, onClose }: { onSave: (f: {code: string, custome
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Nuevo Pedido Manual</h2>
+        
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+          <button type="button" className="btn btn-sm btn-ghost" style={{ flex: 1, cursor: 'not-allowed', opacity: 0.5 }} disabled title="Opción deshabilitada. Usar ventas por fardo.">Con Código 🔒</button>
+          <button type="button" className="btn btn-sm btn-primary" style={{ flex: 1 }}>Desde Fardo ✨</button>
+        </div>
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div className="form-group">
-            <label className="form-label">Código de la prenda *</label>
-            <input className="input" value={code} onChange={e => setCode(e.target.value)} placeholder="ABC-001" required />
-          </div>
+          <>
+            <div className="form-group">
+              <label className="form-label">Seleccionar Fardo *</label>
+              <select className="select" value={selectedBaleId} onChange={e => setSelectedBaleId(e.target.value)} required>
+                {bales.map(b => (
+                  <option key={b.id} value={b.id}>{b.name} ({b.remaining_items} disp.)</option>
+                ))}
+                {bales.length === 0 && <option value="">No hay fardos activos</option>}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Precio de Venta ($) *</label>
+              <input className="input" type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="15.00" required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Descripción / Prenda (Opcional)</label>
+              <input className="input" value={description} onChange={e => setDescription(e.target.value)} placeholder="Ej. POLO NEGRO" />
+            </div>
+          </>
+
           <div className="form-group">
             <label className="form-label">Nombre del cliente *</label>
             <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ana" required />
@@ -138,11 +197,13 @@ function NewOrderModal({ onSave, onClose }: { onSave: (f: {code: string, custome
           <div className="form-group">
             <label className="form-label">WhatsApp del cliente *</label>
             <input className="input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="51999888777" required />
-            <span style={{fontSize: 11, color: 'var(--text-muted)'}}>Incluir código de país sin el +. Ej: 51987654321</span>
           </div>
+          
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Creando...' : 'Crear Pedido'}</button>
+            <button type="submit" className="btn btn-primary" disabled={saving || bales.length === 0}>
+              {saving ? 'Creando...' : 'Crear Pedido'}
+            </button>
           </div>
         </form>
       </div>
@@ -155,34 +216,20 @@ function OrderCard({ order, onConfirm, onCancel }: {
   onConfirm: (id: string) => void;
   onCancel: (id: string) => void;
 }) {
-  const [timeLeft, setTimeLeft] = useState('');
-  const [isExpired, setIsExpired] = useState(false);
-
-  useEffect(() => {
-    const update = () => {
-      if (!order.expires_at) return;
-      const now = Date.now();
-      const exp = new Date(order.expires_at).getTime();
-      const diff = exp - now;
-      if (diff <= 0) { setTimeLeft('00:00'); setIsExpired(true); return; }
-      const m = Math.floor(diff / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      setTimeLeft(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-      setIsExpired(false);
-    };
-    update();
-    const i = setInterval(update, 1000);
-    return () => clearInterval(i);
-  }, [order.expires_at]);
-
   return (
     <div className="card">
       <div className="card-header">
         <span className="badge badge-pending">Pendiente de pago</span>
-        <span className={`timer ${isExpired ? 'timer-danger' : 'timer-ok'}`}>⏱ {timeLeft}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14, fontSize: 13 }}>
+        <div style={{ gridColumn: 'span 2' }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Prenda / Descripción</span>
+          <p style={{ fontWeight: 600, color: 'var(--accent)' }}>
+            {order.garment?.name || order.garment?.code || '—'} 
+            {order.garment?.bale_id && <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6 }}>(Fardo)</span>}
+          </p>
+        </div>
         <div>
           <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Cliente</span>
           <p style={{ fontWeight: 600 }}>{order.customer_name}</p>
@@ -190,10 +237,6 @@ function OrderCard({ order, onConfirm, onCancel }: {
         <div>
           <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>WhatsApp</span>
           <p>{formatPhone(order.customer_phone)}</p>
-        </div>
-        <div>
-          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Prenda</span>
-          <p style={{ fontWeight: 600, color: 'var(--accent)' }}>{order.garment?.code || '—'}</p>
         </div>
         <div>
           <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Precio</span>
@@ -206,7 +249,7 @@ function OrderCard({ order, onConfirm, onCancel }: {
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>{formatDate(order.created_at)}</p>
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button className="btn btn-success" style={{ flex: 1 }} onClick={() => onConfirm(order.id)} disabled={isExpired}>
+        <button className="btn btn-success" style={{ flex: 1 }} onClick={() => onConfirm(order.id)}>
           ☑ PAGADO
         </button>
         <button className="btn btn-danger" onClick={() => onCancel(order.id)}>
