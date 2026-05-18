@@ -39,7 +39,7 @@ export async function middleware(request: NextRequest) {
   // If user is logged in and tries to access /login, redirect to dashboard
   if (user && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard/orders';
+    url.pathname = '/dashboard/finanzas';
     return NextResponse.redirect(url);
   }
 

@@ -7,11 +7,10 @@ export async function GET(req: NextRequest) {
   const { data: bales, error: balesError } = await supabase.from('bales').select('*');
   if (balesError) return NextResponse.json({ error: balesError.message }, { status: 500 });
 
-  const { data: soldGarments, error: garmentsError } = await supabase
-    .from('garments')
-    .select('price, bale_id, status')
-    .in('status', ['SOLD', 'RESERVED']);
-  if (garmentsError) return NextResponse.json({ error: garmentsError.message }, { status: 500 });
+  const { data: sales, error: salesError } = await supabase
+    .from('live_session_sales')
+    .select('total_price, quantity_sold, bale_id');
+  if (salesError) return NextResponse.json({ error: salesError.message }, { status: 500 });
 
   // 1. Total Investment (CAPEX) - Todo el dinero gastado comprando fardos
   let totalInvestment = 0;
@@ -22,19 +21,22 @@ export async function GET(req: NextRequest) {
 
   if (bales) {
     bales.forEach(b => {
-      totalInvestment += b.cost;
+      const baleCost = Number(b.cost);
+      const avgCost = Number(b.average_cost);
+      
+      totalInvestment += baleCost;
       const soldItems = b.total_items - b.remaining_items;
-      const costOfSold = soldItems * b.average_cost;
+      const costOfSold = soldItems * avgCost;
       cogs += costOfSold;
-      inventoryValue += (b.remaining_items * b.average_cost);
+      inventoryValue += (b.remaining_items * avgCost);
     });
   }
 
   // 4. Total Revenue - Todo el dinero que ha entrado por ventas
   let totalRevenue = 0;
-  if (soldGarments) {
-    soldGarments.forEach(g => {
-      totalRevenue += g.price;
+  if (sales) {
+    sales.forEach(s => {
+      totalRevenue += Number(s.total_price);
     });
   }
 
@@ -49,24 +51,27 @@ export async function GET(req: NextRequest) {
 
   // Breakdown per bale
   const balesPerformance = bales?.map(b => {
+    const baleCost = Number(b.cost);
+    const avgCost = Number(b.average_cost);
     const soldItems = b.total_items - b.remaining_items;
-    const itemsFromThisBale = soldGarments?.filter(g => g.bale_id === b.id) || [];
-    const revenueFromThisBale = itemsFromThisBale.reduce((sum, g) => sum + g.price, 0);
     
-    const costOfGoodsSold = soldItems * b.average_cost;
+    const salesFromThisBale = sales?.filter(s => s.bale_id === b.id) || [];
+    const revenueFromThisBale = salesFromThisBale.reduce((sum, s) => sum + Number(s.total_price), 0);
+    
+    const costOfGoodsSold = soldItems * avgCost;
     const grossProfitBale = revenueFromThisBale - costOfGoodsSold;
     const marginPct = revenueFromThisBale > 0 ? (grossProfitBale / revenueFromThisBale) * 100 : 0;
     
     // Recovery status: has revenue surpassed the total cost of the bale?
-    const cashFlowBale = revenueFromThisBale - b.cost;
-    const recoveryPct = (revenueFromThisBale / b.cost) * 100;
+    const cashFlowBale = revenueFromThisBale - baleCost;
+    const recoveryPct = (revenueFromThisBale / baleCost) * 100;
 
     return {
       id: b.id,
       name: b.name,
       total_items: b.total_items,
       sold_items: soldItems,
-      cost: b.cost, // Initial investment
+      cost: baleCost, // Initial investment
       revenue: revenueFromThisBale, // Sales
       cogs: costOfGoodsSold,
       gross_profit: grossProfitBale, // Profit on sold items
@@ -76,6 +81,78 @@ export async function GET(req: NextRequest) {
     };
   }) || [];
 
+  // 8. Daily performance breakdown
+  const { data: dailySales, error: dailyError } = await supabase
+    .from('live_session_sales')
+    .select(`
+      quantity_sold,
+      total_price,
+      created_at,
+      bales (
+        id,
+        name,
+        average_cost
+      ),
+      live_sessions (
+        id,
+        name,
+        session_date
+      )
+    `);
+
+  const dailyPerformance: Record<string, {
+    date: string;
+    session_name: string;
+    bale_name: string;
+    quantity_sold: number;
+    revenue: number;
+    cost: number;
+    profit: number;
+    margin_pct: number;
+  }> = {};
+
+  if (!dailyError && dailySales) {
+    dailySales.forEach((sale: any) => {
+      const session = sale.live_sessions;
+      const bale = sale.bales;
+      if (!session || !bale) return;
+
+      const dateStr = session.session_date || new Date(sale.created_at).toISOString().split('T')[0];
+      const key = `${dateStr}_${bale.id}`;
+
+      if (!dailyPerformance[key]) {
+        dailyPerformance[key] = {
+          date: dateStr,
+          session_name: session.name || 'Live Session',
+          bale_name: bale.name || 'Fardo',
+          quantity_sold: 0,
+          revenue: 0,
+          cost: 0,
+          profit: 0,
+          margin_pct: 0
+        };
+      }
+
+      const itemCost = Number(bale.average_cost || 0);
+      const saleQty = Number(sale.quantity_sold || 0);
+      const salePrice = Number(sale.total_price || 0);
+
+      dailyPerformance[key].quantity_sold += saleQty;
+      dailyPerformance[key].revenue += salePrice;
+      dailyPerformance[key].cost += (saleQty * itemCost);
+    });
+  }
+
+  const dailyPerformanceList = Object.values(dailyPerformance).map(item => {
+    const profit = item.revenue - item.cost;
+    const margin_pct = item.revenue > 0 ? (profit / item.revenue) * 100 : 0;
+    return {
+      ...item,
+      profit,
+      margin_pct
+    };
+  }).sort((a, b) => b.date.localeCompare(a.date));
+
   return NextResponse.json({ 
     total_revenue: totalRevenue,
     total_investment: totalInvestment,
@@ -84,6 +161,7 @@ export async function GET(req: NextRequest) {
     gross_margin_pct: grossMarginPct,
     cash_flow: cashFlow,
     inventory_value: inventoryValue,
-    bales_performance: balesPerformance
+    bales_performance: balesPerformance,
+    daily_performance: dailyPerformanceList
   });
 }

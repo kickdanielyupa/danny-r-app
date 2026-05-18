@@ -26,7 +26,7 @@ export default function LoginPage() {
       setError('Credenciales incorrectas o usuario no existe ✨');
       setLoading(false);
     } else {
-      router.push('/dashboard/orders');
+      router.push('/dashboard/finanzas');
       router.refresh(); // Important to refresh layout and middleware
     }
   };

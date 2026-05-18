@@ -39,6 +39,31 @@ export interface Bale {
   created_at: string;
 }
 
+export interface LiveSession {
+  id: string;
+  name: string;
+  session_date: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface LiveSessionSale {
+  id: string;
+  live_session_id: string;
+  bale_id: string;
+  quantity_sold: number;
+  total_price: number;
+  created_at: string;
+}
+
+export interface LiveSessionSaleWithBale extends LiveSessionSale {
+  bale: Bale;
+}
+
+export interface LiveSessionWithSales extends LiveSession {
+  sales: LiveSessionSaleWithBale[];
+}
+
 export interface Garment {
   id: string;
   code: string;

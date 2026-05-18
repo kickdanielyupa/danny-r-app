@@ -6,14 +6,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@/lib/supabase/client';
 import './dashboard.css';
 
+import { playHoverSound, playClickSound } from '@/lib/utils/sfx';
+
 const NAV_ITEMS = [
   { href: '/dashboard/finanzas', label: 'Finanzas', icon: 'dollar-sign', section: 'operaciones' },
   { href: '/dashboard/bales', label: 'Fardos (Live)', icon: 'box', section: 'operaciones' },
-  { href: '/dashboard/inventory', label: 'Inventario', icon: 'package', section: 'operaciones' },
-  { href: '/dashboard/orders', label: 'Pedidos', icon: 'shopping-bag', section: 'operaciones' },
-  { href: '/dashboard/shipments', label: 'Envíos', icon: 'truck', section: 'operaciones' },
-  { href: '/dashboard/history/orders', label: 'Historial Pedidos', icon: 'clock', section: 'historial' },
-  { href: '/dashboard/history/shipments', label: 'Historial Envíos', icon: 'archive', section: 'historial' },
+  { href: '/dashboard/lives', label: 'Ventas de Live', icon: 'shopping-bag', section: 'operaciones' },
   { href: '/dashboard/history/bales', label: 'Historial Fardos', icon: 'box', section: 'historial' },
 ];
 
@@ -42,6 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => { closeSidebar(); }, [pathname, closeSidebar]);
 
   const handleLogout = async () => {
+    playClickSound();
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();
@@ -51,52 +50,142 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const historial = NAV_ITEMS.filter(i => i.section === 'historial');
 
   return (
-    <div className="dashboard-layout">
+    <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh', background: 'radial-gradient(circle at top right, #1d0f35, #06040a 75%)' }}>
       <div className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`} onClick={closeSidebar} />
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{display: 'flex', flexDirection: 'column'}}>
+      
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{
+        width: 'var(--sidebar-width)',
+        background: 'var(--bg-secondary)',
+        backdropFilter: 'blur(20px)',
+        borderRight: '1px solid var(--border)',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        zIndex: 50,
+        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+      }}>
         <div className="sidebar-brand" style={{ padding: '32px 24px', borderBottom: '1px solid var(--border)' }}>
-          <h1 style={{ 
-            fontSize: '28px', 
-            fontWeight: '800', 
-            letterSpacing: '-1px',
-            background: 'linear-gradient(135deg, #d4af37 0%, #f2cfd8 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>ANDCLAU</h1>
+          <Link href="/dashboard/finanzas" style={{ textDecoration: 'none' }} onClick={playClickSound}>
+            <h1 style={{ 
+              fontSize: '28px', 
+              fontWeight: '800', 
+              letterSpacing: '-1.5px',
+              background: 'linear-gradient(135deg, #d4af37 0%, #ff7eb6 50%, #a855f7 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: 0
+            }}>ANDCLAU</h1>
+          </Link>
           <span style={{ 
-            fontSize: '10px', 
+            fontSize: '9px', 
             textTransform: 'uppercase', 
-            letterSpacing: '0.2em', 
+            letterSpacing: '0.25em', 
             color: 'var(--text-muted)',
-            fontWeight: '600'
-          }}>Premium System</span>
+            fontWeight: '700'
+          }}>Accessible Luxury</span>
         </div>
-        <nav className="sidebar-nav" style={{flex: 1, display: 'flex', flexDirection: 'column'}}>
-          <div className="sidebar-section">Operaciones</div>
-          {operaciones.map(item => (
-            <Link key={item.href} href={item.href} className={`nav-link ${pathname === item.href ? 'active' : ''}`}>
-              <NavIcon icon={item.icon} />
-              {item.label}
-            </Link>
-          ))}
-          <div className="sidebar-section">Historial</div>
-          {historial.map(item => (
-            <Link key={item.href} href={item.href} className={`nav-link ${pathname === item.href ? 'active' : ''}`}>
-              <NavIcon icon={item.icon} />
-              {item.label}
-            </Link>
-          ))}
+
+        <nav className="sidebar-nav" style={{ flex: 1, padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="sidebar-section" style={{
+            fontSize: '10px',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.15em',
+            color: 'var(--warning)',
+            padding: '0 12px',
+            marginBottom: '8px'
+          }}>Operaciones</div>
           
-          <div style={{marginTop: 'auto', paddingTop: 20}}>
-            <button onClick={handleLogout} className="nav-link" style={{width: '100%', textAlign: 'left', background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'inherit', fontSize: 'inherit'}}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: 18, height: 18}}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          {operaciones.map(item => {
+            const isActive = pathname === item.href;
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href} 
+                className={`nav-link ${isActive ? 'active' : ''}`}
+                onMouseEnter={playHoverSound}
+                onClick={playClickSound}
+              >
+                <NavIcon icon={item.icon} />
+                {item.label}
+              </Link>
+            );
+          })}
+          
+          <div className="sidebar-section" style={{
+            fontSize: '10px',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.15em',
+            color: 'var(--warning)',
+            padding: '0 12px',
+            marginTop: '24px',
+            marginBottom: '8px'
+          }}>Historial</div>
+          
+          {historial.map(item => {
+            const isActive = pathname === item.href;
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href} 
+                className={`nav-link ${isActive ? 'active' : ''}`}
+                onMouseEnter={playHoverSound}
+                onClick={playClickSound}
+              >
+                <NavIcon icon={item.icon} />
+                {item.label}
+              </Link>
+            );
+          })}
+          
+          <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+            <button 
+              onClick={handleLogout} 
+              onMouseEnter={playHoverSound}
+              className="nav-link" 
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--danger)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontFamily: 'inherit',
+                fontSize: 'inherit'
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               Cerrar Sesión
             </button>
           </div>
         </nav>
       </aside>
-      <main className="dashboard-main">{children}</main>
-      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle menu">
+
+      <main className="dashboard-main" style={{
+        flex: 1,
+        marginLeft: 'var(--sidebar-width)',
+        padding: '32px 24px',
+        minHeight: '100vh',
+        animation: 'fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+      }}>
+        {children}
+      </main>
+
+      <button 
+        className="mobile-toggle" 
+        onClick={() => {
+          playClickSound();
+          setSidebarOpen(!sidebarOpen);
+        }} 
+        aria-label="Toggle menu"
+      >
         {sidebarOpen ? '✕' : '☰'}
       </button>
     </div>
