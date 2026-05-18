@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const historial = NAV_ITEMS.filter(i => i.section === 'historial');
 
   return (
-    <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh', background: 'radial-gradient(circle at top right, #1d0f35, #06040a 75%)' }}>
+    <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh', background: 'transparent' }}>
       <div className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`} onClick={closeSidebar} />
       
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{
@@ -73,7 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               fontSize: '28px', 
               fontWeight: '800', 
               letterSpacing: '-1.5px',
-              background: 'linear-gradient(135deg, #d4af37 0%, #ff7eb6 50%, #a855f7 100%)',
+              background: 'linear-gradient(135deg, #00b4d8 0%, #7c3aed 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               margin: 0
