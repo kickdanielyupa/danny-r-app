@@ -1,34 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-primary: #f6f3fa; /* Soft elegant cream/lavender white */
-  --bg-secondary: #ebdffa; /* Beautiful light lavender sidebar */
-  --bg-card: rgba(255, 255, 255, 0.85); /* Semi-transparent pure white glass */
-  --bg-card-hover: rgba(255, 255, 255, 0.98); /* Bright white card hover */
+  --bg-primary: #f0f4f8; /* NASA digital command center slate */
+  --bg-secondary: #e3ebf4; /* Crisp high-visibility sidebar */
+  --bg-card: rgba(255, 255, 255, 0.82); /* Pure light glass console */
+  --bg-card-hover: rgba(255, 255, 255, 0.98); /* Solid white console card */
   --bg-input: #ffffff;
-  --border: rgba(171, 142, 40, 0.25); /* Gold border for high visibility */
-  --border-focus: #ab8e28; /* Gold focus */
-  --text-primary: #1b1030; /* Deep violet - maximum visibility */
-  --text-secondary: #3d2a5c; /* Highly visible purple grey */
-  --text-muted: #6f5d8c; /* Darker muted text for readability */
-  --accent: #ab8e28; /* Polished Satin Gold */
-  --accent-hover: #c4a73b;
-  --success: #059669; /* Rich Emerald Green */
-  --success-bg: rgba(5,150,105,0.12);
-  --warning: #db2777; /* Royal Rose Pink */
-  --warning-bg: rgba(219,39,119,0.12);
-  --danger: #e11d48; /* High contrast Red Crimson */
-  --danger-bg: rgba(225,29,72,0.12);
-  --info: #6d28d9; /* Deep Ultraviolet */
-  --info-bg: rgba(109,40,217,0.12);
-  --radius-sm: 12px;
-  --radius: 20px;
-  --radius-lg: 28px;
-  --shadow: 0 8px 32px 0 rgba(142, 120, 180, 0.1);
-  --shadow-lg: 0 16px 48px rgba(142, 120, 180, 0.18);
-  --shadow-gold: 0 0 24px rgba(171, 142, 40, 0.25);
-  --shadow-purple: 0 0 24px rgba(109, 40, 217, 0.15);
-  --transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --border: rgba(0, 180, 216, 0.22); /* Sharp Cyber Neon Cyan outline */
+  --border-focus: #00b4d8; /* Neon Cyber Cyan focus */
+  --text-primary: #0f172a; /* Deep Space Slate (maximum visibility) */
+  --text-secondary: #334155; /* Digital steel slate */
+  --text-muted: #64748b; /* Cyber metallic gray text */
+  --accent: #00b4d8; /* High-Visibility Neon Cyber Cyan */
+  --accent-hover: #0096c7;
+  --success: #0d9488; /* Cyber neon mint green */
+  --success-bg: rgba(13,148,136,0.1);
+  --warning: #f59e0b; /* Bright tech amber alert */
+  --warning-bg: rgba(245,158,11,0.1);
+  --danger: #db2777; /* Cyber punk magenta-pink */
+  --danger-bg: rgba(219,39,119,0.1);
+  --info: #7c3aed; /* Neon violet */
+  --info-bg: rgba(124,58,237,0.1);
+  --radius-sm: 8px; /* Sharper cyber corners */
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow: 0 8px 32px 0 rgba(0, 180, 216, 0.06); /* Soft neon cyan shadow glow */
+  --shadow-lg: 0 16px 48px rgba(0, 180, 216, 0.12);
+  --shadow-gold: 0 0 24px rgba(0, 180, 216, 0.25); /* Cyan neon glow */
+  --shadow-purple: 0 0 24px rgba(124, 58, 237, 0.15);
+  --transition: 250ms cubic-bezier(0.16, 1, 0.3, 1);
   --sidebar-width: 260px;
 }
 
@@ -38,11 +38,24 @@ html, body { height: 100%; }
 
 body {
   font-family: 'Outfit', -apple-system, sans-serif;
-  background: radial-gradient(circle at top right, #fff5f8, #f3ebfa 75%);
+  background: radial-gradient(circle at top right, #e8f5ff, #f0f4f8 75%);
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   animation: fadeIn 0.8s ease-out forwards;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(0, 180, 216, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 180, 216, 0.02) 1px, transparent 1px);
+  background-size: 30px 30px;
+  z-index: -1;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -213,15 +226,15 @@ tr:hover td { background: var(--bg-card-hover); }
 }
 
 /* ==========================================================================
-   Cute Girl Login Styles 🌸✨
+   Cute Girl Login Styles 🌸✨ (Light Cyberpunk Edition)
    ========================================================================== */
 :root {
-  --login-bg: #ffe4e1;
+  --login-bg: #eaf6ff;
   --login-card: rgba(255, 255, 255, 0.9);
-  --login-text: #c74b75; /* Darker pink for better visibility */
-  --login-accent: #ffb6c1;
-  --login-btn: #ff69b4;
-  --login-btn-hover: #ff1493;
+  --login-text: #1e293b; /* Darker slate for readability */
+  --login-accent: #90e0ef;
+  --login-btn: #00b4d8; /* Neon Cyber Cyan button */
+  --login-btn-hover: #0077b6;
 }
 
 .login-container {
@@ -229,15 +242,27 @@ tr:hover td { background: var(--bg-card-hover); }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
+  background: linear-gradient(135deg, #eaf6ff 0%, #f0f4f8 100%);
   position: relative;
   overflow: hidden;
+}
+
+.login-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(0, 180, 216, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 180, 216, 0.02) 1px, transparent 1px);
+  background-size: 30px 30px;
+  z-index: 0;
 }
 
 .login-decor {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(0, 180, 216, 0.15) 0%, rgba(0, 180, 216, 0.05) 100%);
   backdrop-filter: blur(5px);
   z-index: 0;
 }
@@ -261,7 +286,7 @@ tr:hover td { background: var(--bg-card-hover); }
   backdrop-filter: blur(20px);
   padding: 40px;
   border-radius: 24px;
-  box-shadow: 0 15px 40px rgba(180, 140, 160, 0.15), inset 0 0 0 1px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 15px 40px rgba(0, 180, 216, 0.1), inset 0 0 0 1px rgba(0, 180, 216, 0.35);
   width: 100%;
   max-width: 400px;
   z-index: 1;
@@ -275,7 +300,10 @@ tr:hover td { background: var(--bg-card-hover); }
 
 .login-header h1 {
   font-size: 32px;
-  color: #d81b60; /* Highly visible pink */
+  background: linear-gradient(135deg, #00b4d8, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 8px;
   font-weight: 800;
   letter-spacing: -1px;
@@ -289,20 +317,20 @@ tr:hover td { background: var(--bg-card-hover); }
 
 .login-input {
   background: #ffffff;
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: #2a1b40; /* High contrast text color */
+  border: 1px solid rgba(0, 180, 216, 0.4);
+  color: #0f172a; /* High contrast text color */
   border-radius: 12px;
   padding: 12px 16px;
   transition: all 0.3s ease;
 }
 
 .login-input::placeholder {
-  color: #a89bb0;
+  color: #64748b;
 }
 
 .login-input:focus {
   border-color: var(--login-btn);
-  box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
   background: #ffffff;
 }
 
@@ -323,11 +351,11 @@ tr:hover td { background: var(--bg-card-hover); }
 .login-btn:hover {
   background: var(--login-btn-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(255, 105, 180, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 180, 216, 0.3);
 }
 
 .login-error {
-  background: rgba(239, 68, 68, 0.08);
+  background: rgba(219, 39, 119, 0.08);
   color: var(--danger);
   padding: 10px;
   border-radius: 8px;
